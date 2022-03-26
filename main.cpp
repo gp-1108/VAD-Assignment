@@ -1,5 +1,5 @@
 #include <iostream>
-#include "vad.cpp"
+#include "vad.hpp"
 
 using namespace std;
 
