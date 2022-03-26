@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include "vad.cpp"
 
 using namespace std;
 
@@ -20,6 +21,7 @@ int chooseAudio() {
 
 int main() {
   const int PACKET_SIZE = 160;
+  VAD vad(200, 3500, 8000);
 
   int choice = chooseAudio();
 
@@ -29,18 +31,17 @@ int main() {
   ifstream inputStream(inputFileName, ifstream::binary);
   ofstream outputStream(outputFileName, ofstream::binary);
 
+  int intervalNumber = 0;
   while(inputStream.good()) {
     vector<signed char> packet;
+    intervalNumber++;
     for(int i = 0; i < PACKET_SIZE && inputStream.good(); i++) {
       signed char sample;
       inputStream.read((char*) &sample, sizeof(sample));
       packet.push_back(sample);
     }
-    
-    // VAD operation
-    int isVoice = 1; // it will be later on decided by the VAD
 
-    if(isVoice == 1) {
+    if(vad.isVoice(packet)) {
       for(int i = 0; i < PACKET_SIZE; i++) {
         outputStream.write((char *) &packet[i], sizeof(packet[i]));
       }
@@ -55,6 +56,5 @@ int main() {
   inputStream.close();
   outputStream.close();
 
-  cout << "end" << endl;
   return 0;
 }
