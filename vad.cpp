@@ -10,14 +10,20 @@ using namespace std;
 
 VAD::VAD(int fileNum) {
   fileNumber = fileNum;
+  inputPath = "inputData/inputaudio" + to_string(fileNumber) + ".data";
+  lastVoice = 0;
+}
+
+VAD::VAD(string path) { 
+  fileNumber = 0;
+  inputPath = path;
   lastVoice = 0;
 }
 
 void VAD::processData() {
-  string inputFileName = "inputData/inputaudio" + to_string(fileNumber) + ".data";
-  string outputFileName = "outputData/outputaudio" + to_string(fileNumber) + ".data";
+  string outputFileName = "outputData/outputVAD" + to_string(fileNumber) + ".txt";
 
-  ifstream inputStream(inputFileName, ifstream::binary);
+  ifstream inputStream(inputPath, ifstream::binary);
   ofstream outputStream(outputFileName, ofstream::binary);
 
   vector<signed char> lastSent;

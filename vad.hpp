@@ -1,6 +1,7 @@
 // Girotto Pietro - Matr. 1216355
 #include <vector>
 #include <complex>
+#include <string>
 
 /**
  * @brief Tailored Voice Activity Detection program with mandatory input and output standards
@@ -40,7 +41,8 @@
 class VAD {
   private:
     int lastVoice; // a simple counter to avoid premature interrupt of speech
-    int fileNumber; // the number of the file to process
+    std::string inputPath; // the number of the file to process
+    int fileNumber;
 
     /**
      * @brief The Fast Fourier Transformation function
@@ -71,7 +73,14 @@ class VAD {
   /**
    * @brief Construct a new VAD object
    * 
-   * @param fileNum is the number of the file to process
+   * @param fileNum is the number of the file to process in the "inputData/inputaudio<INT>.data"
    */
   VAD(int fileNum);
+
+  /**
+   * @brief Construct a new VAD object
+   * 
+   * @param path is the path to the file to process
+   */
+  VAD(std::string path);
 };
