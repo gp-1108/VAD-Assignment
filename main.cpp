@@ -31,10 +31,10 @@ int main() {
   ifstream inputStream(inputFileName, ifstream::binary);
   ofstream outputStream(outputFileName, ofstream::binary);
 
-  int intervalNumber = 0;
+  vector<signed char> lastSent;
+
   while(inputStream.good()) {
     vector<signed char> packet;
-    intervalNumber++;
     for(int i = 0; i < PACKET_SIZE && inputStream.good(); i++) {
       signed char sample;
       inputStream.read((char*) &sample, sizeof(sample));
@@ -42,14 +42,23 @@ int main() {
     }
 
     if(vad.isVoice(packet)) {
+      if(lastSent.size() > 0) {
+        for(int i = 0; i < lastSent.size(); i++) {
+          outputStream.write((char *) &packet[i], sizeof(packet[i]));
+        } 
+      }
       for(int i = 0; i < PACKET_SIZE; i++) {
         outputStream.write((char *) &packet[i], sizeof(packet[i]));
       }
+      lastSent.clear();
     } else {
-      signed char zero = 0;
-      for(int i = 0; i < PACKET_SIZE; i++) {
-        outputStream.write((char *) &zero, sizeof(zero));
+      if(lastSent.size() > 0) {
+        signed char zero = 0;
+        for(int i = 0; i < PACKET_SIZE; i++) {
+          outputStream.write((char *) &zero, sizeof(zero));
+        }
       }
+      lastSent = packet;
     }
   }
 

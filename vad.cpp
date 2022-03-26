@@ -72,7 +72,7 @@ class VAD {
     double peak = maxMagnitude;
 
     if(peak <= maxFrequency && peak >= minFrequency) {
-      lastVoice = 0;
+      lastVoice = 3;
       return true;
     }
     return false;
