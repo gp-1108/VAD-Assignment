@@ -6,11 +6,25 @@
 using namespace std;
 
 
+int chooseAudio() {
+  int number;
+  cout << "Please select one of the available tracks to process (1-5): ";
+  cin >> number;
+  cout << endl;
+  while(number < 1 || number > 5) {
+    cout << "Selected value not available, choose a file audio from 1 to 5: ";
+    cin >> number;
+  }
+  return number;
+}
+
 int main() {
   const int PACKET_SIZE = 160;
 
-  string inputFileName = "inputData/inputaudio1.data";
-  string outputFileName = "outputData/outputaudio1.data";
+  int choice = chooseAudio();
+
+  string inputFileName = "inputData/inputaudio" + to_string(choice) + ".data";
+  string outputFileName = "outputData/outputaudio" + to_string(choice) + ".data";
 
   ifstream inputStream(inputFileName, ifstream::binary);
   ofstream outputStream(outputFileName, ofstream::binary);
@@ -41,6 +55,6 @@ int main() {
   inputStream.close();
   outputStream.close();
 
-  cout << "end";
+  cout << "end" << endl;
   return 0;
 }
