@@ -1,44 +1,69 @@
-#include <vector>
 #include <complex>
+#include <fstream>
+#include <string>
+#include <vector>
 #include <iostream>
 
 using namespace std;
 
 class VAD {
   private:
-    double maxFrequency;
-    double minFrequency;
-    double samplingFrequency;
-    double rumorEnergy;
     int lastVoice;
+    int fileNumber;
   public:
     const double PI = 3.1415926535897932384626433832795;
+    const int PACKET_SIZE = 160;
+    const double samplingFrequency = 8000;
+    const double maxFrequency = 3500;
+    const double minFrequency = 200;
 
-  VAD(double minFreq, double maxFreq, double sampFreq) {
+  VAD(int file) {
+    fileNumber = file;
     lastVoice = 0;
-    rumorEnergy = 0;
-    samplingFrequency = sampFreq;
-    maxFrequency = maxFreq;
-    minFrequency = minFreq;
   }
 
-  bool isVoiceEnergy(vector<signed char> &packet, bool earlyTime) {
-    // TODO spostare parametri
-    double k = 1.3;
-    double p = 0.9;
+  void processData() {
+    string inputFileName = "inputData/inputaudio" + to_string(fileNumber) + ".data";
+    string outputFileName = "outputData/outputaudio" + to_string(fileNumber) + ".data";
 
+    ifstream inputStream(inputFileName, ifstream::binary);
+    ofstream outputStream(outputFileName, ofstream::binary);
 
-    double currentEnergy = 0;
-    for(signed char num : packet) {
-      currentEnergy += (double) num * (double) num;
-    }
-    currentEnergy /= packet.size();
+    vector<signed char> lastSent;
 
-    if(earlyTime || currentEnergy <= (k * rumorEnergy)) {
-      rumorEnergy = (1-p) * rumorEnergy + p * currentEnergy;
-      return false;
-    }
-    return true;
+    while(inputStream.good()) {
+      vector<signed char> packet;
+      for(int i = 0; i < PACKET_SIZE && inputStream.good(); i++) {
+        signed char sample;
+        inputStream.read((char*) &sample, sizeof(sample));
+        packet.push_back(sample);
+      }
+
+      if(isVoice(packet)) {
+        if(lastSent.size() > 0) {
+          for(int i = 0; i < lastSent.size(); i++) {
+            outputStream.write((char *) &packet[i], sizeof(packet[i]));
+          } 
+        }
+        for(int i = 0; i < PACKET_SIZE; i++) {
+          outputStream.write((char *) &packet[i], sizeof(packet[i]));
+        }
+        lastSent.clear();
+      } else {
+        if(lastSent.size() > 0) {
+          signed char zero = 0;
+          for(int i = 0; i < PACKET_SIZE; i++) {
+            outputStream.write((char *) &zero, sizeof(zero));
+          }
+        }
+        lastSent = packet;
+      }
+  }
+
+    inputStream.close();
+    outputStream.close();
+
+    return;
   }
 
   int isVoice(vector<signed char> &packet) {
@@ -55,20 +80,13 @@ class VAD {
 
 
     double maxMagnitude = -1;
-    int maxIndex = -1;
     for(int i = 0; i < (fftOutput.size() / 2); i++) {
       double magnitude = sqrt((fftOutput[i].real() * fftOutput[i].real()) + (fftOutput[i].imag() * fftOutput[i].imag()));
       if(magnitude > maxMagnitude) {
         maxMagnitude = magnitude;
-        maxIndex = i;
       }
     }
 
-
-    // previous one somewhat functioning
-    // double peak = samplingFrequency * (packet.size() / maxMagnitude);
-
-    // double peak = samplingFrequency * (packet.size() / maxMagnitude);
     double peak = maxMagnitude;
 
     if(peak <= maxFrequency && peak >= minFrequency) {
