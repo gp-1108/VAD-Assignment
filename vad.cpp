@@ -1,3 +1,4 @@
+// Girotto Pietro - Matr. 1216355
 #include "vad.hpp"    
 #include <complex>
 #include <fstream>
@@ -21,8 +22,10 @@ void VAD::processData() {
 
   vector<signed char> lastSent;
 
+  // starting processing
   while(inputStream.good()) {
     vector<signed char> packet;
+    //reading from input
     for(int i = 0; i < PACKET_SIZE && inputStream.good(); i++) {
       signed char sample;
       inputStream.read((char*) &sample, sizeof(sample));
@@ -30,16 +33,19 @@ void VAD::processData() {
     }
 
     if(isVoice(packet)) {
+      // there was a previous packet not sent
       if(lastSent.size() > 0) {
         for(int i = 0; i < lastSent.size(); i++) {
           outputStream.write((char *) &packet[i], sizeof(packet[i]));
         } 
       }
+      // writing the current packet
       for(int i = 0; i < PACKET_SIZE; i++) {
         outputStream.write((char *) &packet[i], sizeof(packet[i]));
       }
       lastSent.clear();
     } else {
+      // there was a previous packet not sent
       if(lastSent.size() > 0) {
         signed char zero = 0;
         for(int i = 0; i < PACKET_SIZE; i++) {
@@ -48,19 +54,23 @@ void VAD::processData() {
       }
       lastSent = packet;
     }
-}
+  }
 
+  // closing file streams
   inputStream.close();
   outputStream.close();
 
   return;
 }
 
-int VAD::isVoice(vector<signed char> &packet) {
+bool VAD::isVoice(vector<signed char> &packet) {
+  // Recently found voice-related packet
   if(lastVoice > 0) {
     lastVoice--;
     return true;
   }
+
+
   vector<complex<double>> complexValues;
   for(int i = 0; i < packet.size(); i++) {
     complex<double> c((double) packet[i], 0.0);
@@ -68,18 +78,17 @@ int VAD::isVoice(vector<signed char> &packet) {
   }
   vector<complex<double>> fftOutput = fft(complexValues);
 
-
+  // Finding the greatest magnitude
   double maxMagnitude = -1;
   for(int i = 0; i < (fftOutput.size() / 2); i++) {
     double magnitude = sqrt((fftOutput[i].real() * fftOutput[i].real()) + (fftOutput[i].imag() * fftOutput[i].imag()));
-    if(magnitude > maxMagnitude) {
-      maxMagnitude = magnitude;
-    }
+    maxMagnitude = max(magnitude, maxMagnitude);
   }
 
   double peak = maxMagnitude;
 
   if(peak <= maxFrequency && peak >= minFrequency) {
+    // Next iteration will be recorded regardless of their content
     lastVoice = 3;
     return true;
   }
