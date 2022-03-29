@@ -21,7 +21,7 @@ VAD::VAD(string path) {
 
 void VAD::processData() {
   string outputFileName = "outputData/outputVAD" + to_string(fileNumber) + ".data";
-  string txtFileName = "outputTXT/ouputTXT" + to_string(fileNumber) + ".txt";
+  string txtFileName = "outputTXT/ouputVAD" + to_string(fileNumber) + ".txt";
 
   ifstream inputStream(inputPath, ifstream::binary);
   ofstream outputStream(outputFileName, ofstream::binary);
@@ -75,7 +75,6 @@ void VAD::processData() {
 }
 
 bool VAD::isVoice(vector<signed char> &packet) {
-
 
   vector<complex<double>> complexValues;
   for(int i = 0; i < packet.size(); i++) {
