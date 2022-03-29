@@ -21,10 +21,12 @@ VAD::VAD(string path) {
 }
 
 void VAD::processData() {
-  string outputFileName = "outputData/outputVAD" + to_string(fileNumber) + ".txt";
+  string outputFileName = "outputData/outputVAD" + to_string(fileNumber) + ".data";
+  string txtFileName = "outputTXT/ouputTXT" + to_string(fileNumber) + ".txt";
 
   ifstream inputStream(inputPath, ifstream::binary);
   ofstream outputStream(outputFileName, ofstream::binary);
+  ofstream txt(txtFileName);
 
   vector<signed char> lastSent;
 
@@ -44,11 +46,13 @@ void VAD::processData() {
         for(int i = 0; i < lastSent.size(); i++) {
           outputStream.write((char *) &packet[i], sizeof(packet[i]));
         } 
+        txt.put('1');
       }
       // writing the current packet
       for(int i = 0; i < PACKET_SIZE; i++) {
         outputStream.write((char *) &packet[i], sizeof(packet[i]));
       }
+      txt.put('1');
       lastSent.clear();
     } else {
       // there was a previous packet not sent
@@ -57,6 +61,7 @@ void VAD::processData() {
         for(int i = 0; i < PACKET_SIZE; i++) {
           outputStream.write((char *) &zero, sizeof(zero));
         }
+        txt.put('0');
       }
       lastSent = packet;
     }
@@ -65,6 +70,7 @@ void VAD::processData() {
   // closing file streams
   inputStream.close();
   outputStream.close();
+  txt.close();
 
   return;
 }
