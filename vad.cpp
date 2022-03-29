@@ -4,7 +4,6 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <iostream>
 
 using namespace std;
 
@@ -76,11 +75,6 @@ void VAD::processData() {
 }
 
 bool VAD::isVoice(vector<signed char> &packet) {
-  // Recently found voice-related packet
-  if(lastVoice > 0) {
-    lastVoice--;
-    return true;
-  }
 
 
   vector<complex<double>> complexValues;
@@ -101,9 +95,17 @@ bool VAD::isVoice(vector<signed char> &packet) {
 
   if(peak <= maxFrequency && peak >= minFrequency) {
     // Next iteration will be recorded regardless of their content
-    lastVoice = 3;
+    lastVoice = 2;
     return true;
   }
+
+  // Recently found voice-related packet
+  if(lastVoice > 0) {
+    lastVoice--;
+    return true;
+  }
+
+  // Packet does not match
   return false;
 }
 
